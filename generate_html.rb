@@ -1,6 +1,7 @@
 #!/usr/bin/ruby
 require 'aws'
 require 'nokogiri'
+require 'date'
 
 def getObjectHash(objectCollection)
   objectHash = {}
@@ -16,6 +17,7 @@ def getObjectHash(objectCollection)
         fileName = fileName.split('-i386').first[0...-4]
         tempHash = { fileName => {:i386 => "http://pangea-data.s3.amazonaws.com/" + object.key }}
       end
+      ## Merge the arch hash inside of hash instead of overwriting it
       objectHash.merge!(tempHash) { |key, oldval, newval| newval.merge!(oldval) }
     end
   end
@@ -37,21 +39,30 @@ kci_object_collection = bucket.objects.with_prefix(ARGV[0] + "/images")
 tableElement = @page.at_css "tbody"
 
 objectHash = getObjectHash(kci_object_collection)
-objectHash.keys.reverse_each do |key|
-  myObject = objectHash[key]
+
+## Ruby is weird here, I don't totally understand why, but
+## we get a array after this pass.
+
+objectHash = objectHash.sort_by { |k, v| Date.parse(k.split('-').last) }
+
+objectHash.reverse_each do |key|
+  myObject = key[1]
 
   tableEntry = Nokogiri::XML::Node.new "tr", @page
   tableEntry.parent = tableElement
 
   tableEntryKey = Nokogiri::XML::Node.new "td", @page
-  tableEntryKey.content = key
+  tableEntryKey.content = key[0]
   tableEntryKey.parent = tableEntry
-  
+
   directLinkValue = Nokogiri::XML::Node.new "td", @page
   directLinkValue.parent = tableEntry
 
   torrentLinkValue = Nokogiri::XML::Node.new "td", @page
   torrentLinkValue.parent = tableEntry
+
+  zsyncLinkValue = Nokogiri::XML::Node.new "td", @page
+  zsyncLinkValue.parent = tableEntry
 
   if myObject.has_key? (:i386)
     directLink = Nokogiri::XML::Node.new "a", @page
@@ -63,6 +74,11 @@ objectHash.keys.reverse_each do |key|
     torrentLink['href'] = myObject[:i386] + "?torrent"
     torrentLink.content = "[i386]"
     torrentLink.parent = torrentLinkValue
+
+    zsyncLink = Nokogiri::XML::Node.new "a", @page
+    zsyncLink['href'] = myObject[:i386] + ".zsync"
+    zsyncLink.content = "[i386]"
+    zsyncLink.parent = zsyncLinkValue
 
   end
 
@@ -76,6 +92,11 @@ objectHash.keys.reverse_each do |key|
     torrentLink['href'] = myObject[:amd64] + "?torrent"
     torrentLink.content = "[amd64]"
     torrentLink.parent = torrentLinkValue
+
+    zsyncLink = Nokogiri::XML::Node.new "a", @page
+    zsyncLink['href'] = myObject[:amd64] + ".zsync"
+    zsyncLink.content = "[amd64]"
+    zsyncLink.parent = zsyncLinkValue
   end
 end
 
