@@ -9,13 +9,12 @@ def getObjectHash(objectCollection)
     if object.key.end_with? ".iso"
       tempHash = {}
       fileName = object.key.split('/').last
+      date = Date.parse(fileName.split('-')[2][0...-4])
       if fileName.include? 'amd64'
-        fileName = fileName.split('-amd64').first[0...-4]
-        tempHash = { fileName => {:amd64 => "http://pangea-data.s3.amazonaws.com/" + object.key }}
+        tempHash = { date => {:amd64 => "http://pangea-data.s3.amazonaws.com/" + object.key }}
       end
       if fileName.include? 'i386'
-        fileName = fileName.split('-i386').first[0...-4]
-        tempHash = { fileName => {:i386 => "http://pangea-data.s3.amazonaws.com/" + object.key }}
+        tempHash = { date => {:i386 => "http://pangea-data.s3.amazonaws.com/" + object.key }}
       end
       ## Merge the arch hash inside of hash instead of overwriting it
       objectHash.merge!(tempHash) { |key, oldval, newval| newval.merge!(oldval) }
@@ -40,19 +39,14 @@ tableElement = @page.at_css "tbody"
 
 objectHash = getObjectHash(kci_object_collection)
 
-## Ruby is weird here, I don't totally understand why, but
-## we get a array after this pass.
-
-objectHash = objectHash.sort_by { |k, v| Date.parse(k.split('-').last) }
-
-objectHash.reverse_each do |key|
-  myObject = key[1]
+objectHash.keys.sort.reverse_each do |key|
+  myObject = objectHash[key]
 
   tableEntry = Nokogiri::XML::Node.new "tr", @page
   tableEntry.parent = tableElement
 
   tableEntryKey = Nokogiri::XML::Node.new "td", @page
-  tableEntryKey.content = key[0]
+  tableEntryKey.content = key
   tableEntryKey.parent = tableEntry
 
   directLinkValue = Nokogiri::XML::Node.new "td", @page
