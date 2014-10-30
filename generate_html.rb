@@ -9,7 +9,7 @@ def getObjectHash(objectCollection)
     if object.key.end_with? ".iso"
       tempHash = {}
       fileName = object.key.split('/').last
-      date = Date.parse(fileName.split('-')[2][0...-4])
+      date = Date.parse(fileName.split('-')[2])
       if fileName.include? 'amd64'
         tempHash = { date => {:amd64 => "http://pangea-data.s3.amazonaws.com/" + object.key }}
       end
