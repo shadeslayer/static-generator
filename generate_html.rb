@@ -55,9 +55,6 @@ objectHash.keys.sort.reverse_each do |key|
   torrentLinkValue = Nokogiri::XML::Node.new "td", @page
   torrentLinkValue.parent = tableEntry
 
-  zsyncLinkValue = Nokogiri::XML::Node.new "td", @page
-  zsyncLinkValue.parent = tableEntry
-
   if myObject.has_key? (:i386)
     directLink = Nokogiri::XML::Node.new "a", @page
     directLink['href'] = myObject[:i386]
@@ -68,12 +65,6 @@ objectHash.keys.sort.reverse_each do |key|
     torrentLink['href'] = myObject[:i386] + "?torrent"
     torrentLink.content = "[i386]"
     torrentLink.parent = torrentLinkValue
-
-    zsyncLink = Nokogiri::XML::Node.new "a", @page
-    zsyncLink['href'] = myObject[:i386] + ".zsync"
-    zsyncLink.content = "[i386]"
-    zsyncLink.parent = zsyncLinkValue
-
   end
 
   if myObject.has_key?(:amd64)
@@ -86,11 +77,6 @@ objectHash.keys.sort.reverse_each do |key|
     torrentLink['href'] = myObject[:amd64] + "?torrent"
     torrentLink.content = "[amd64]"
     torrentLink.parent = torrentLinkValue
-
-    zsyncLink = Nokogiri::XML::Node.new "a", @page
-    zsyncLink['href'] = myObject[:amd64] + ".zsync"
-    zsyncLink.content = "[amd64]"
-    zsyncLink.parent = zsyncLinkValue
   end
 end
 
