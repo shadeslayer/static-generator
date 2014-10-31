@@ -36,6 +36,7 @@ kci_object_collection = bucket.objects.with_prefix(ARGV[0] + "/images")
 
 if !File.exist?('index.html')
   puts "What?! No index.html?! Boo!"
+  exit
 end
 
 @page = Nokogiri::HTML(open("index.html"))
