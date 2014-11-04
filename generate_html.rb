@@ -18,6 +18,9 @@ def getObjectHash(objectCollection)
       end
       ## Merge the arch hash inside of hash instead of overwriting it
       objectHash.merge!(tempHash) { |key, oldval, newval| newval.merge!(oldval) }
+
+      ## Set the right acl
+      object.acl = :public_read
     end
   end
   return objectHash
