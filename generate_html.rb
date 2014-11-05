@@ -9,7 +9,7 @@ def getObjectHash(objectCollection)
     if object.key.end_with? ".iso"
       tempHash = {}
       fileName = object.key.split('/').last
-      date = Date.parse(fileName.split('-')[2])
+      date = Date.parse(fileName.split('-')[-2])
       if fileName.include? 'amd64'
         tempHash = { date => {:amd64 => "http://pangea-data.s3.amazonaws.com/" + object.key }}
       end
@@ -35,7 +35,9 @@ s3 = AWS::S3.new()
 
 bucket = s3.buckets['pangea-data']
 
-kci_object_collection = bucket.objects.with_prefix(ARGV[0] + "/images")
+prefix = ARGV[0] + '/images'
+prefix += '/' + ARGV[1] unless ARGV[1].nil?
+ci_object_collection = bucket.objects.with_prefix(prefix)
 
 if !File.exist?('index.html')
   puts "What?! No index.html?! Boo!"
@@ -45,7 +47,7 @@ end
 @page = Nokogiri::HTML(open("index.html"))
 tableElement = @page.at_css "tbody"
 
-objectHash = getObjectHash(kci_object_collection)
+objectHash = getObjectHash(ci_object_collection)
 
 objectHash.keys.sort.reverse_each do |key|
   myObject = objectHash[key]
