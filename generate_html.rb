@@ -1,4 +1,5 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
+
 require 'aws'
 require 'nokogiri'
 require 'date'
@@ -28,7 +29,15 @@ end
 
 unless ARGV[0]
   puts "What do you think you're trying to pull mister!"
+  puts "Need path relative to bucket root as argument...."
   exit
+end
+
+if File.exist?("#{ENV['HOME']}/.config/aws.json")
+    puts "Parsing aws.json config"
+    data = File.read("#{ENV['HOME']}/.config/aws.json")
+    config = JSON::parse(data, :symbolize_names => true)
+    AWS.config(config)
 end
 
 s3 = AWS::S3.new()
@@ -44,7 +53,7 @@ if !File.exist?('index.html')
   exit
 end
 
-@page = Nokogiri::HTML(open("index.html"))
+@page = Nokogiri::HTML(open("#{File.expand_path(File.dirname(File.dirname(__FILE__)))}/index.html"))
 tableElement = @page.at_css "tbody"
 
 objectHash = getObjectHash(ci_object_collection)
